@@ -1,12 +1,12 @@
-# Connect Snowflake Cortex Agent to Amazon QuickSight via MCP
+# Connect Snowflake Cortex Agent to Amazon QuickSuite via MCP
 
-This guide walks you through exposing a Snowflake Cortex Agent to Amazon QuickSight using Snowflake's Managed MCP (Model Context Protocol) server.
+This guide walks you through exposing a Snowflake Cortex Agent to Amazon QuickSuite using Snowflake's Managed MCP (Model Context Protocol) server.
 
 > **Battle-Tested**: This guide incorporates real-world fixes and workarounds discovered during production deployments. Follow each step carefully to avoid common pitfalls.
 
 ## Overview
 
-Amazon QuickSight supports MCP integration for both action execution and data access. By creating an MCP server in Snowflake that wraps your Cortex Agent, QuickSight users can interact with your agent directly from the QuickSight interface.
+Amazon QuickSuite supports MCP integration for both action execution and data access. By creating an MCP server in Snowflake that wraps your Cortex Agent, QuickSuite users can interact with your agent directly from the QuickSuite interface.
 
 ## Critical Requirements (Don't Skip These!)
 
@@ -14,7 +14,7 @@ Before you begin, be aware of these **critical issues** that are NOT well docume
 
 | Issue | Why It Matters | Solution |
 |-------|----------------|----------|
-| **QuickSight sends `scope=ALL`** | Snowflake interprets this as requesting a role named "ALL" | Create a role literally called `"ALL"` |
+| **QuickSuite sends `scope=ALL`** | Snowflake interprets this as requesting a role named "ALL" | Create a role literally called `"ALL"` |
 | **Agent needs `execution_environment`** | Without it, agent responds to "hello" but fails on data questions | Must configure via SQL (NOT available in UI!) |
 | **`GRANT USAGE ON INTEGRATION`** | OAuth works but data queries fail silently | Must grant the OAuth integration itself |
 | **MFA/WebAuthn breaks OAuth** | OAuth flows fail with passkey authentication | Create a dedicated service user |
@@ -30,15 +30,15 @@ Before you begin, ensure you have:
   - ACCOUNTADMIN role access
   - A warehouse for query execution
 
-- **Amazon QuickSight Requirements**
-  - Amazon QuickSight Author subscription or higher
-  - Access to the QuickSight console
+- **Amazon QuickSuite Requirements**
+  - Amazon QuickSuite Author subscription or higher
+  - Access to the QuickSuite console
 
 ## Step-by-Step Guide
 
 ### Step 1: Create the "ALL" Role
 
-**Why?** QuickSight sends `scope=ALL` in its OAuth request. Snowflake interprets this as requesting a role named "ALL". Without this role, you'll get: *"The role ALL requested has been explicitly blocked"*
+**Why?** QuickSuite sends `scope=ALL` in its OAuth request. Snowflake interprets this as requesting a role named "ALL". Without this role, you'll get: *"The role ALL requested has been explicitly blocked"*
 
 ```sql
 USE ROLE ACCOUNTADMIN;
@@ -55,13 +55,13 @@ SHOW ROLES LIKE 'ALL';
 **Why?** Users with MFA/WebAuthn (passkeys) enabled cannot complete OAuth flows. You'll see: *"The WebAuthn assertion is invalid"*
 
 ```sql
--- Create a dedicated user for QuickSight OAuth
+-- Create a dedicated user for QuickSuite OAuth
 CREATE USER IF NOT EXISTS QUICKSIGHT_MCP_USER
     PASSWORD = 'YourSecurePassword123!'  -- Change this!
     DEFAULT_ROLE = "ALL"
     DEFAULT_WAREHOUSE = <YOUR_WAREHOUSE>
     MUST_CHANGE_PASSWORD = FALSE
-    COMMENT = 'Service user for QuickSight MCP OAuth';
+    COMMENT = 'Service user for QuickSuite MCP OAuth';
 
 -- Grant the ALL role to this user
 GRANT ROLE "ALL" TO USER QUICKSIGHT_MCP_USER;
@@ -128,7 +128,7 @@ tools:
     name: "<AGENT>"
     type: "CORTEX_AGENT_RUN"
     identifier: "<DATABASE>.<SCHEMA>.<AGENT>"
-    description: "Your agent description for QuickSight"
+    description: "Your agent description for QuickSuite"
 $$;
 ```
 
@@ -151,7 +151,7 @@ CREATE OR REPLACE SECURITY INTEGRATION <AGENT>_QUICKSIGHT_OAUTH
     ENABLED = TRUE
     OAUTH_CLIENT = CUSTOM
     OAUTH_CLIENT_TYPE = 'CONFIDENTIAL'
-    OAUTH_REDIRECT_URI = 'https://quicksight.aws.amazon.com/sn/oauthcallback'
+    OAUTH_REDIRECT_URI = 'https://quicksuite.aws.amazon.com/sn/oauthcallback'
     OAUTH_ISSUE_REFRESH_TOKENS = TRUE
     OAUTH_REFRESH_TOKEN_VALIDITY = 86400
     OAUTH_USE_SECONDARY_ROLES = IMPLICIT
@@ -164,7 +164,7 @@ Get the OAuth credentials:
 SELECT SYSTEM$SHOW_OAUTH_CLIENT_SECRETS('<AGENT>_QUICKSIGHT_OAUTH');
 ```
 
-**Save these values** - you'll need them for QuickSight:
+**Save these values** - you'll need them for QuickSuite:
 - `OAUTH_CLIENT_ID`
 - `OAUTH_CLIENT_SECRET`
 
@@ -263,9 +263,9 @@ SELECT CURRENT_ACCOUNT(), CURRENT_REGION();
 https://abc12345.us-west-2.aws.snowflakecomputing.com/api/v2/databases/MY_DB/schemas/MY_SCHEMA/mcp-servers/MY_AGENT_MCP_SERVER
 ```
 
-### Step 8: Configure QuickSight MCP Integration
+### Step 8: Configure QuickSuite MCP Integration
 
-1. Open the **Amazon QuickSight console**
+1. Open the **Amazon QuickSuite console**
 2. Navigate to **Integrations** and click **Add** (+)
 3. Enter your **MCP Server Endpoint** URL from Step 7
 4. Click **Next**
@@ -286,7 +286,7 @@ https://abc12345.us-west-2.aws.snowflakecomputing.com/api/v2/databases/MY_DB/sch
 
 ### Step 9: Test the Integration
 
-1. In QuickSight, click on your new integration
+1. In QuickSuite, click on your new integration
 2. **Test with "hello" first** - this verifies the MCP connection works
 3. **Then test with a data question** like "What is the total transaction volume?"
 
@@ -328,7 +328,7 @@ CREATE ROLE IF NOT EXISTS "ALL";
 GRANT USAGE ON INTEGRATION <AGENT>_QUICKSIGHT_OAUTH TO ROLE "ALL";
 ```
 
-### QuickSight returns SQL query instead of actual results
+### QuickSuite returns SQL query instead of actual results
 
 **Cause**: Using `CORTEX_ANALYST_MESSAGE` instead of `CORTEX_AGENT_RUN`
 
@@ -360,7 +360,7 @@ SELECT SYSTEM$SHOW_OAUTH_CLIENT_SECRETS('<AGENT>_QUICKSIGHT_OAUTH');
 
 ### 60-Second Timeout Errors
 
-MCP operations in QuickSight have a fixed 60-second timeout.
+MCP operations in QuickSuite have a fixed 60-second timeout.
 
 **Fix**:
 - Optimize your agent's queries
@@ -391,7 +391,7 @@ GRANT ROLE "ALL" TO USER QUICKSIGHT_MCP_USER;
 
 -- Step 3: Create Agent WITH execution_environment (MUST use SQL!)
 CREATE OR REPLACE AGENT <DATABASE>.<SCHEMA>.<AGENT>
-  COMMENT = 'Agent for QuickSight MCP'
+  COMMENT = 'Agent for QuickSuite MCP'
   FROM SPECIFICATION $$
 models:
   orchestration: "auto"
@@ -428,7 +428,7 @@ CREATE OR REPLACE SECURITY INTEGRATION <AGENT>_QUICKSIGHT_OAUTH
     ENABLED = TRUE
     OAUTH_CLIENT = CUSTOM
     OAUTH_CLIENT_TYPE = 'CONFIDENTIAL'
-    OAUTH_REDIRECT_URI = 'https://quicksight.aws.amazon.com/sn/oauthcallback'
+    OAUTH_REDIRECT_URI = 'https://quicksuite.aws.amazon.com/sn/oauthcallback'
     OAUTH_ISSUE_REFRESH_TOKENS = TRUE
     OAUTH_REFRESH_TOKEN_VALIDITY = 86400
     OAUTH_USE_SECONDARY_ROLES = IMPLICIT
@@ -460,12 +460,12 @@ GRANT USAGE ON AGENT <DATABASE>.<SCHEMA>.<AGENT> TO ROLE PUBLIC;
 -- Step 7: Get OAuth credentials (save these!)
 SELECT SYSTEM$SHOW_OAUTH_CLIENT_SECRETS('<AGENT>_QUICKSIGHT_OAUTH');
 
--- Done! Now configure QuickSight with the OAuth credentials.
+-- Done! Now configure QuickSuite with the OAuth credentials.
 ```
 
 ## Known Limitations
 
-- **60-second timeout**: MCP operations in QuickSight have a fixed 60-second timeout
+- **60-second timeout**: MCP operations in QuickSuite have a fixed 60-second timeout
 - **No custom headers**: Custom HTTP headers are not supported
 - **Static tool lists**: Tool lists remain static after initial registration - delete and recreate integration to refresh
 - **No VPC connectivity**: VPC connectivity is not supported for MCP integrations
@@ -490,11 +490,11 @@ DROP ROLE IF EXISTS "ALL";
 DROP USER IF EXISTS QUICKSIGHT_MCP_USER;
 ```
 
-Also remove the integration from the QuickSight console under **Integrations**.
+Also remove the integration from the QuickSuite console under **Integrations**.
 
 ## Additional Resources
 
-- [Amazon QuickSight MCP Integration Documentation](https://docs.aws.amazon.com/quick/latest/userguide/mcp-integration.html)
+- [Amazon QuickSuite MCP Integration Documentation](https://docs.aws.amazon.com/quick/latest/userguide/mcp-integration.html)
 - [Snowflake Cortex Agents Documentation](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents)
 - [Snowflake MCP Server Documentation](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents/mcp-server)
 - [Snowflake OAuth Security Integration](https://docs.snowflake.com/en/user-guide/oauth-custom)
