@@ -1,17 +1,17 @@
 ---
-name: expose-agent-to-quicksight
-description: "Expose a Cortex Agent to Amazon QuickSight via Snowflake Managed MCP. Use when: user wants to connect agent to QuickSight, set up MCP server for QuickSight, integrate Snowflake with AWS QuickSight, enable OAuth for QuickSight MCP. Triggers: quicksight, MCP server, expose agent, amazon quicksight, aws integration, quicksight action."
+name: expose-agent-to-quick-suite
+description: "Expose a Cortex Agent to Quick Suite via Snowflake Managed MCP. Use when: user wants to connect agent to Quick Suite, set up MCP server for Quick Suite, integrate Snowflake with Quick Suite, enable OAuth for Quick Suite MCP. Triggers: quick suite, MCP server, expose agent, quick suite action, aws integration."
 ---
 
-# Expose Cortex Agent to Amazon QuickSight
+# Expose Cortex Agent to Quick Suite
 
-Exposes an existing Snowflake Cortex Agent to Amazon QuickSight via Snowflake Managed MCP (Model Context Protocol).
+Exposes an existing Snowflake Cortex Agent to Quick Suite via Snowflake Managed MCP (Model Context Protocol).
 
 ## Prerequisites
 
 - An existing Cortex Agent in Snowflake
 - ACCOUNTADMIN role access (or equivalent privileges)
-- Amazon QuickSight Author or higher subscription
+- Quick Suite Author or higher subscription
 
 ## Workflow
 
@@ -20,7 +20,7 @@ Exposes an existing Snowflake Cortex Agent to Amazon QuickSight via Snowflake Ma
 **Ask user for the following:**
 
 ```
-To expose your agent to Amazon QuickSight, provide:
+To expose your agent to Quick Suite, provide:
 
 1. DATABASE     : Database containing your agent
 2. SCHEMA       : Schema containing your agent  
@@ -110,7 +110,7 @@ CREATE ROLE IF NOT EXISTS <CUSTOM_ROLE>;
 **Execute:**
 
 ```sql
-CREATE OR REPLACE SECURITY INTEGRATION <AGENT>_QUICKSIGHT_OAUTH
+CREATE OR REPLACE SECURITY INTEGRATION <AGENT>_QUICK_SUITE_OAUTH
     TYPE = OAUTH
     ENABLED = TRUE
     OAUTH_CLIENT = CUSTOM
@@ -120,7 +120,7 @@ CREATE OR REPLACE SECURITY INTEGRATION <AGENT>_QUICKSIGHT_OAUTH
     OAUTH_REFRESH_TOKEN_VALIDITY = 86400;
 ```
 
-The redirect URI is a placeholder - it will be updated in Step 7 after QuickSight generates the real one.
+The redirect URI is a placeholder - it will be updated in Step 7 after Quick Suite generates the real one.
 
 ---
 
@@ -129,13 +129,13 @@ The redirect URI is a placeholder - it will be updated in Step 7 after QuickSigh
 **Execute:**
 
 ```sql
-SELECT SYSTEM$SHOW_OAUTH_CLIENT_SECRETS('<AGENT>_QUICKSIGHT_OAUTH');
+SELECT SYSTEM$SHOW_OAUTH_CLIENT_SECRETS('<AGENT>_QUICK_SUITE_OAUTH');
 ```
 
 **Present credentials to user:**
 
 ```
-Save these credentials - you'll need them for QuickSight:
+Save these credentials - you'll need them for Quick Suite:
 
 OAUTH_CLIENT_ID:     <value from query>
 OAUTH_CLIENT_SECRET: <value from query>
@@ -145,15 +145,15 @@ OAUTH_CLIENT_SECRET: <value from query>
 
 ---
 
-### Step 6: Configure QuickSight (Manual Steps)
+### Step 6: Configure Quick Suite (Manual Steps)
 
 **Present these instructions to the user:**
 
 ```
-AMAZON QUICKSIGHT CONFIGURATION
-===============================
+QUICK SUITE CONFIGURATION
+=========================
 
-1. Open the Amazon QuickSight console
+1. Open the Quick Suite console
 
 2. Navigate to: Integrations -> Click "Add" (+ button)
 
@@ -175,7 +175,7 @@ AMAZON QUICKSIGHT CONFIGURATION
    Client Secret:  <OAUTH_CLIENT_SECRET from Step 5>
    Token URL:      https://<ACCOUNT>.snowflakecomputing.com/oauth/token-request
    Auth URL:       https://<ACCOUNT>.snowflakecomputing.com/oauth/authorize
-   Redirect URL:   (leave blank - QuickSight will auto-generate)
+   Redirect URL:   (leave blank - Quick Suite will auto-generate)
    
 8. Click "Create and continue"
 
@@ -188,7 +188,7 @@ AMAZON QUICKSIGHT CONFIGURATION
 Return here with the Redirect URL from step 9.
 ```
 
-**Stop**: Wait for user to provide the Redirect URL from QuickSight.
+**Stop**: Wait for user to provide the Redirect URL from Quick Suite.
 
 ---
 
@@ -197,13 +197,13 @@ Return here with the Redirect URL from step 9.
 **Once user provides the Redirect URL, execute:**
 
 ```sql
-ALTER SECURITY INTEGRATION <AGENT>_QUICKSIGHT_OAUTH 
-    SET OAUTH_REDIRECT_URI = '<REDIRECT_URL_FROM_QUICKSIGHT>';
+ALTER SECURITY INTEGRATION <AGENT>_QUICK_SUITE_OAUTH 
+    SET OAUTH_REDIRECT_URI = '<REDIRECT_URL_FROM_QUICK_SUITE>';
 ```
 
 **Verify the update:**
 ```sql
-DESCRIBE SECURITY INTEGRATION <AGENT>_QUICKSIGHT_OAUTH;
+DESCRIBE SECURITY INTEGRATION <AGENT>_QUICK_SUITE_OAUTH;
 ```
 
 Confirm `OAUTH_REDIRECT_URI` shows the new URL.
@@ -218,7 +218,7 @@ Confirm `OAUTH_REDIRECT_URI` shows the new URL.
 COMPLETE THE CONNECTION
 =======================
 
-1. Return to Amazon QuickSight
+1. Return to Quick Suite
 
 2. Navigate to Integrations
 
@@ -228,12 +228,12 @@ COMPLETE THE CONNECTION
 
 5. Sign in with your Snowflake credentials
 
-6. Done! Your agent is now available as an action in QuickSight.
+6. Done! Your agent is now available as an action in Quick Suite.
 
 TEST YOUR AGENT
 ===============
 
-In QuickSight, use your agent through the action connector.
+In Quick Suite, use your agent through the action connector.
 The agent should respond using your Snowflake Cortex Agent.
 
 IMPORTANT LIMITATIONS
@@ -253,7 +253,7 @@ IMPORTANT LIMITATIONS
 | Object | Name |
 |--------|------|
 | MCP Server | `<DATABASE>.<SCHEMA>.<AGENT>_MCP_SERVER` |
-| OAuth Integration | `<AGENT>_QUICKSIGHT_OAUTH` |
+| OAuth Integration | `<AGENT>_QUICK_SUITE_OAUTH` |
 
 ### Key URLs (replace placeholders)
 
@@ -274,12 +274,12 @@ IMPORTANT LIMITATIONS
 
 ## Troubleshooting
 
-### "Object does not exist" in QuickSight
+### "Object does not exist" in Quick Suite
 - Verify MCP server exists: `SHOW MCP SERVERS IN SCHEMA <DATABASE>.<SCHEMA>;`
 - Check grants were applied: `SHOW GRANTS ON MCP SERVER <DATABASE>.<SCHEMA>.<AGENT>_MCP_SERVER;`
 
 ### OAuth errors
-- Verify redirect URL matches exactly: `DESCRIBE SECURITY INTEGRATION <AGENT>_QUICKSIGHT_OAUTH;`
+- Verify redirect URL matches exactly: `DESCRIBE SECURITY INTEGRATION <AGENT>_QUICK_SUITE_OAUTH;`
 - Ensure OAuth integration is enabled: `ENABLED = TRUE`
 
 ### Permission denied
@@ -287,7 +287,7 @@ IMPORTANT LIMITATIONS
 - Verify warehouse access: `SHOW GRANTS ON WAREHOUSE <WAREHOUSE>;`
 
 ### Timeout errors (HTTP 424)
-- QuickSight MCP has a 60-second timeout limit
+- Quick Suite MCP has a 60-second timeout limit
 - Optimize agent queries or use simpler prompts
 - Consider breaking complex operations into smaller steps
 
@@ -297,7 +297,7 @@ IMPORTANT LIMITATIONS
 
 ### Tools not appearing
 - Tool lists are static after initial registration
-- Refresh the action connector in QuickSight to detect server-side changes
+- Refresh the action connector in Quick Suite to detect server-side changes
 
 ---
 
@@ -307,7 +307,7 @@ To remove the integration:
 
 ```sql
 DROP MCP SERVER IF EXISTS <DATABASE>.<SCHEMA>.<AGENT>_MCP_SERVER;
-DROP SECURITY INTEGRATION IF EXISTS <AGENT>_QUICKSIGHT_OAUTH;
+DROP SECURITY INTEGRATION IF EXISTS <AGENT>_QUICK_SUITE_OAUTH;
 -- Revoke grants manually if using custom role
 ```
 
@@ -324,5 +324,5 @@ DROP SECURITY INTEGRATION IF EXISTS <AGENT>_QUICKSIGHT_OAUTH;
 ## Output
 
 - MCP Server exposing Cortex Agent
-- OAuth security integration for QuickSight
-- Working connection between Amazon QuickSight and Snowflake Agent
+- OAuth security integration for Quick Suite
+- Working connection between Quick Suite and Snowflake Agent

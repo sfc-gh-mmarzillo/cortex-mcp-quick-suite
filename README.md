@@ -1,10 +1,10 @@
-# Connect Snowflake Cortex Agent to Amazon QuickSight via MCP
+# Connect Snowflake Cortex Agent to Quick Suite via MCP
 
-This guide walks you through exposing a Snowflake Cortex Agent to Amazon QuickSight using Snowflake's Managed MCP (Model Context Protocol) server.
+This guide walks you through exposing a Snowflake Cortex Agent to Quick Suite using Snowflake's Managed MCP (Model Context Protocol) server.
 
 ## Overview
 
-Amazon QuickSight supports MCP integration for both action execution and data access. By creating an MCP server in Snowflake that wraps your Cortex Agent, QuickSight users can interact with your agent directly from the QuickSight interface.
+Quick Suite supports MCP integration for both action execution and data access. By creating an MCP server in Snowflake that wraps your Cortex Agent, Quick Suite users can interact with your agent directly from the Quick Suite interface.
 
 ## Prerequisites
 
@@ -15,9 +15,9 @@ Before you begin, ensure you have:
   - ACCOUNTADMIN role access (or equivalent privileges to create MCP servers and security integrations)
   - A warehouse for query execution
 
-- **Amazon QuickSight Requirements**
-  - Amazon QuickSight Author subscription or higher
-  - Access to the QuickSight console
+- **Quick Suite Requirements**
+  - Quick Suite Author subscription or higher
+  - Access to the Quick Suite console
 
 ## Step-by-Step Guide
 
@@ -80,17 +80,17 @@ GRANT SELECT ON ALL TABLES IN SCHEMA <DATABASE>.<SCHEMA> TO ROLE PUBLIC;
 **Option B: Grant to a custom role**
 
 ```sql
-CREATE ROLE IF NOT EXISTS QUICKSIGHT_MCP_ROLE;
+CREATE ROLE IF NOT EXISTS QUICK_SUITE_MCP_ROLE;
 
-GRANT USAGE ON DATABASE <DATABASE> TO ROLE QUICKSIGHT_MCP_ROLE;
-GRANT USAGE ON SCHEMA <DATABASE>.<SCHEMA> TO ROLE QUICKSIGHT_MCP_ROLE;
-GRANT USAGE ON MCP SERVER <DATABASE>.<SCHEMA>.<AGENT>_MCP_SERVER TO ROLE QUICKSIGHT_MCP_ROLE;
-GRANT USAGE ON AGENT <DATABASE>.<SCHEMA>.<AGENT> TO ROLE QUICKSIGHT_MCP_ROLE;
-GRANT USAGE ON WAREHOUSE <WAREHOUSE> TO ROLE QUICKSIGHT_MCP_ROLE;
-GRANT SELECT ON ALL TABLES IN SCHEMA <DATABASE>.<SCHEMA> TO ROLE QUICKSIGHT_MCP_ROLE;
+GRANT USAGE ON DATABASE <DATABASE> TO ROLE QUICK_SUITE_MCP_ROLE;
+GRANT USAGE ON SCHEMA <DATABASE>.<SCHEMA> TO ROLE QUICK_SUITE_MCP_ROLE;
+GRANT USAGE ON MCP SERVER <DATABASE>.<SCHEMA>.<AGENT>_MCP_SERVER TO ROLE QUICK_SUITE_MCP_ROLE;
+GRANT USAGE ON AGENT <DATABASE>.<SCHEMA>.<AGENT> TO ROLE QUICK_SUITE_MCP_ROLE;
+GRANT USAGE ON WAREHOUSE <WAREHOUSE> TO ROLE QUICK_SUITE_MCP_ROLE;
+GRANT SELECT ON ALL TABLES IN SCHEMA <DATABASE>.<SCHEMA> TO ROLE QUICK_SUITE_MCP_ROLE;
 
 -- Grant the role to users who need access
-GRANT ROLE QUICKSIGHT_MCP_ROLE TO USER <username>;
+GRANT ROLE QUICK_SUITE_MCP_ROLE TO USER <username>;
 ```
 
 **Additional grants (if applicable)**
@@ -105,10 +105,10 @@ GRANT USAGE ON CORTEX SEARCH SERVICE <DATABASE>.<SCHEMA>.<SERVICE_NAME> TO ROLE 
 
 ### Step 4: Create OAuth Security Integration
 
-Create an OAuth integration for QuickSight authentication:
+Create an OAuth integration for Quick Suite authentication:
 
 ```sql
-CREATE OR REPLACE SECURITY INTEGRATION <AGENT>_QUICKSIGHT_OAUTH
+CREATE OR REPLACE SECURITY INTEGRATION <AGENT>_QUICK_SUITE_OAUTH
     TYPE = OAUTH
     ENABLED = TRUE
     OAUTH_CLIENT = CUSTOM
@@ -118,23 +118,23 @@ CREATE OR REPLACE SECURITY INTEGRATION <AGENT>_QUICKSIGHT_OAUTH
     OAUTH_REFRESH_TOKEN_VALIDITY = 86400;
 ```
 
-> **Note**: The redirect URI is a placeholder. You'll update it after QuickSight generates the real URL.
+> **Note**: The redirect URI is a placeholder. You'll update it after Quick Suite generates the real URL.
 
 ### Step 5: Retrieve OAuth Credentials
 
 Get the client ID and secret:
 
 ```sql
-SELECT SYSTEM$SHOW_OAUTH_CLIENT_SECRETS('<AGENT>_QUICKSIGHT_OAUTH');
+SELECT SYSTEM$SHOW_OAUTH_CLIENT_SECRETS('<AGENT>_QUICK_SUITE_OAUTH');
 ```
 
-**Save these values securely** - you'll need them for QuickSight configuration:
+**Save these values securely** - you'll need them for Quick Suite configuration:
 - `OAUTH_CLIENT_ID`
 - `OAUTH_CLIENT_SECRET`
 
-### Step 6: Configure QuickSight MCP Integration
+### Step 6: Configure Quick Suite MCP Integration
 
-1. Open the **Amazon QuickSight console**
+1. Open the **Quick Suite console**
 
 2. Navigate to **Integrations** and click **Add** (+)
 
@@ -169,31 +169,31 @@ SELECT SYSTEM$SHOW_OAUTH_CLIENT_SECRETS('<AGENT>_QUICKSIGHT_OAUTH');
 
 ### Step 7: Update Snowflake with the Redirect URL
 
-Back in Snowflake, update the OAuth integration with the redirect URL from QuickSight:
+Back in Snowflake, update the OAuth integration with the redirect URL from Quick Suite:
 
 ```sql
-ALTER SECURITY INTEGRATION <AGENT>_QUICKSIGHT_OAUTH 
-    SET OAUTH_REDIRECT_URI = '<REDIRECT_URL_FROM_QUICKSIGHT>';
+ALTER SECURITY INTEGRATION <AGENT>_QUICK_SUITE_OAUTH 
+    SET OAUTH_REDIRECT_URI = '<REDIRECT_URL_FROM_QUICK_SUITE>';
 ```
 
 Verify the update:
 
 ```sql
-DESCRIBE SECURITY INTEGRATION <AGENT>_QUICKSIGHT_OAUTH;
+DESCRIBE SECURITY INTEGRATION <AGENT>_QUICK_SUITE_OAUTH;
 ```
 
 ### Step 8: Complete the Connection
 
-1. Return to **Amazon QuickSight**
+1. Return to **Quick Suite**
 2. Navigate to **Integrations**
 3. Find your MCP integration
 4. Click to authenticate
 5. Sign in with your Snowflake credentials
-6. Your agent is now available as an action in QuickSight
+6. Your agent is now available as an action in Quick Suite
 
 ## Testing Your Integration
 
-After setup is complete, test the integration by using your agent through QuickSight's action connector. The agent should respond using your Snowflake Cortex Agent's capabilities.
+After setup is complete, test the integration by using your agent through Quick Suite's action connector. The agent should respond using your Snowflake Cortex Agent's capabilities.
 
 ## Quick Reference
 
@@ -202,7 +202,7 @@ After setup is complete, test the integration by using your agent through QuickS
 | Object Type | Naming Convention |
 |-------------|-------------------|
 | MCP Server | `<DATABASE>.<SCHEMA>.<AGENT>_MCP_SERVER` |
-| OAuth Integration | `<AGENT>_QUICKSIGHT_OAUTH` |
+| OAuth Integration | `<AGENT>_QUICK_SUITE_OAUTH` |
 
 ### URLs Reference
 
@@ -221,7 +221,7 @@ After setup is complete, test the integration by using your agent through QuickS
 
 ## Known Limitations
 
-- **60-second timeout**: MCP operations in QuickSight have a fixed 60-second timeout. Operations exceeding this limit fail with HTTP 424.
+- **60-second timeout**: MCP operations in Quick Suite have a fixed 60-second timeout. Operations exceeding this limit fail with HTTP 424.
 - **No custom headers**: Custom HTTP headers are not supported in MCP operations.
 - **Static tool lists**: Tool lists remain static after initial registration. Refresh manually to detect server-side changes.
 - **No VPC connectivity**: VPC connectivity is not supported for MCP integrations.
@@ -242,7 +242,7 @@ SHOW GRANTS ON MCP SERVER <DATABASE>.<SCHEMA>.<AGENT>_MCP_SERVER;
 
 ```sql
 -- Verify redirect URL matches exactly
-DESCRIBE SECURITY INTEGRATION <AGENT>_QUICKSIGHT_OAUTH;
+DESCRIBE SECURITY INTEGRATION <AGENT>_QUICK_SUITE_OAUTH;
 
 -- Ensure integration is enabled
 -- Look for ENABLED = TRUE in the output
@@ -280,15 +280,15 @@ To remove the integration:
 DROP MCP SERVER IF EXISTS <DATABASE>.<SCHEMA>.<AGENT>_MCP_SERVER;
 
 -- Drop the OAuth integration
-DROP SECURITY INTEGRATION IF EXISTS <AGENT>_QUICKSIGHT_OAUTH;
+DROP SECURITY INTEGRATION IF EXISTS <AGENT>_QUICK_SUITE_OAUTH;
 
 -- If using a custom role, drop it (optional)
-DROP ROLE IF EXISTS QUICKSIGHT_MCP_ROLE;
+DROP ROLE IF EXISTS QUICK_SUITE_MCP_ROLE;
 ```
 
-Also remove the integration from the QuickSight console under **Integrations**.
+Also remove the integration from the Quick Suite console under **Integrations**.
 
 ## Additional Resources
 
-- [Amazon QuickSight MCP Integration Documentation](https://docs.aws.amazon.com/quick/latest/userguide/mcp-integration.html)
+- [Quick Suite MCP Integration Documentation](https://docs.aws.amazon.com/quick/latest/userguide/mcp-integration.html)
 - [Snowflake Cortex Agents Documentation](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-agents)
