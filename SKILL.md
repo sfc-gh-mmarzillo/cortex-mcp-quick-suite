@@ -7,6 +7,15 @@ description: "Expose a Cortex Agent to Quick Suite via Snowflake Managed MCP. Us
 
 Exposes an existing Snowflake Cortex Agent to Quick Suite via Snowflake Managed MCP (Model Context Protocol).
 
+## When to Use
+
+Use this skill when someone asks:
+- "How do I connect my Cortex Agent to Quick Suite?"
+- "Set up MCP for Quick Suite"
+- "Expose my agent to Quick Suite"
+- "Integrate Snowflake with Quick Suite"
+- "Enable OAuth for Quick Suite MCP"
+
 ## Prerequisites
 
 - An existing Cortex Agent in Snowflake
@@ -75,7 +84,6 @@ SHOW MCP SERVERS IN SCHEMA <DATABASE>.<SCHEMA>;
 **Review these grants with the user before executing:**
 
 ```sql
--- Required grants for MCP access
 GRANT USAGE ON DATABASE <DATABASE> TO ROLE PUBLIC;
 GRANT USAGE ON SCHEMA <DATABASE>.<SCHEMA> TO ROLE PUBLIC;
 GRANT USAGE ON MCP SERVER <DATABASE>.<SCHEMA>.<AGENT>_MCP_SERVER TO ROLE PUBLIC;

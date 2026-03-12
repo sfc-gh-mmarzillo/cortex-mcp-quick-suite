@@ -1,0 +1,16 @@
+skill_name: "expose-agent-to-quick-suite"
+skill_type: "external"
+promotion_stage: "draft"
+
+validation:
+  testers:
+    count: 0
+    names: []
+
+evidence_links:
+  - https://github.com/Snowflake-Solutions/pse-csp/tree/main/skills/expose-agent-to-quick-suite
+
+notes: |
+  Skill to expose Snowflake Cortex Agents to Quick Suite via
+  Managed MCP with OAuth authentication. Walks users through
+  MCP server creation, OAuth integration, and Quick Suite configuration.
